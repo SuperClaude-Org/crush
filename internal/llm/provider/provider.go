@@ -90,6 +90,40 @@ type baseProvider[C ProviderClient] struct {
 	client  C
 }
 
+// registryProvider wraps provider clients from the registry
+type registryProvider struct {
+	options providerClientOptions
+	client  ProviderClient
+}
+
+func (p *registryProvider) cleanMessages(messages []message.Message) []message.Message {
+	// Registry providers handle system messages in their own client implementations
+	// Just filter out empty messages like baseProvider does
+	var cleaned []message.Message
+	for _, msg := range messages {
+		// The message has no content
+		if len(msg.Parts) == 0 {
+			continue
+		}
+		cleaned = append(cleaned, msg)
+	}
+	return cleaned
+}
+
+func (p *registryProvider) SendMessages(ctx context.Context, messages []message.Message, tools []tools.BaseTool) (*ProviderResponse, error) {
+	messages = p.cleanMessages(messages)
+	return p.client.send(ctx, messages, tools)
+}
+
+func (p *registryProvider) StreamResponse(ctx context.Context, messages []message.Message, tools []tools.BaseTool) <-chan ProviderEvent {
+	messages = p.cleanMessages(messages)
+	return p.client.stream(ctx, messages, tools)
+}
+
+func (p *registryProvider) Model() catwalk.Model {
+	return p.client.Model()
+}
+
 func (p *baseProvider[C]) cleanMessages(messages []message.Message) (cleaned []message.Message) {
 	for _, msg := range messages {
 		// The message has no content
@@ -172,6 +206,17 @@ func NewProvider(cfg config.ProviderConfig, opts ...ProviderClientOption) (Provi
 	for _, o := range opts {
 		o(&clientOptions)
 	}
+	
+	// First, check if this provider is registered in the registry
+	if client, found := CreateFromRegistry(cfg, clientOptions); found {
+		// Wrap the provider client in baseProvider interface
+		return &registryProvider{
+			options: clientOptions,
+			client:  client,
+		}, nil
+	}
+	
+	// Fall back to existing switch statement for built-in providers
 	switch cfg.Type {
 	case catwalk.TypeAnthropic:
 		return &baseProvider[AnthropicClient]{
