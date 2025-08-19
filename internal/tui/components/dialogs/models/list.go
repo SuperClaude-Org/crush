@@ -53,7 +53,9 @@ func (m *ModelListComponent) Init() tea.Cmd {
 		filteredProviders := []catwalk.Provider{}
 		for _, p := range providers {
 			hasAPIKeyEnv := strings.HasPrefix(p.APIKey, "$")
-			if hasAPIKeyEnv && p.ID != catwalk.InferenceProviderAzure {
+			isOAuthProvider := config.IsOAuthProvider(string(p.ID))
+			// Include providers with API key env vars or OAuth providers
+			if (hasAPIKeyEnv && p.ID != catwalk.InferenceProviderAzure) || isOAuthProvider {
 				filteredProviders = append(filteredProviders, p)
 			}
 		}
