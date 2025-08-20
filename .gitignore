@@ -44,6 +44,9 @@ Thumbs.db
 
 **/.crush/**
 
+# Serena MCP cache and session data
+.serena/
+
 /crush
 
 manpages/
