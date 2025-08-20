@@ -59,7 +59,7 @@ func init() {
 
 // runAuthLogin handles the authentication login process
 func runAuthLogin(ctx context.Context) error {
-	cfg, err := config.Load("", false)
+	cfg, err := config.Load("", "", false)
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -163,7 +163,7 @@ func authenticateClaudeSub(ctx context.Context, authManager *auth.AuthManager) e
 
 // runAuthLogout handles the authentication logout process
 func runAuthLogout(ctx context.Context) error {
-	cfg, err := config.Load("", false)
+	cfg, err := config.Load("", "", false)
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -191,7 +191,7 @@ func runAuthLogout(ctx context.Context) error {
 
 // runAuthStatus displays the current authentication status
 func runAuthStatus(ctx context.Context) error {
-	cfg, err := config.Load("", false)
+	cfg, err := config.Load("", "", false)
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
